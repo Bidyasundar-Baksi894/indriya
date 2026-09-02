@@ -4,7 +4,6 @@
 
 Indriya is an endpoint behavioral security agent designed to mitigate **Automation Bias** in high-risk Enterprise AI environments (BFSI, SOC teams, Smart Manufacturing). This repository hosts the interactive prototypes and executive dashboards for the Indriya platform, debuting at the **RISE Conclave 2026**.
 
-🚀 **[Access the Live Mobile Showcase & Demo Hub](https://Bidyasundar-Baksi894.github.io/indriya/)**
 
 ### ⚠️ The Problem
 Enterprises deploying LLMs and AI copilots are losing millions because human operators fall into **Automation Bias** - blindly approving hallucinated or malicious AI recommendations without checking the source data. Current systems lack the ability to measure this human-AI interaction breakdown.

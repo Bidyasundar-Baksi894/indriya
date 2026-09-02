@@ -1,6 +1,6 @@
 # 🛡️ Indriya | AI Behavioral Security
 
-> *"We measure what AI can't see — the human mind using it."*
+> *"We measure what AI can't see - the human mind using it."*
 
 Indriya is an endpoint behavioral security agent designed to mitigate **Automation Bias** in high-risk Enterprise AI environments (BFSI, SOC teams, Smart Manufacturing). This repository hosts the interactive prototypes and executive dashboards for the Indriya platform, debuting at the **RISE Conclave 2026**.
 

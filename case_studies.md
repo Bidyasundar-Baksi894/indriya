@@ -1,10 +1,10 @@
-# Indriya — India-Specific Case Studies & Market Justification
+# Indriya- India-Specific Case Studies & Market Justification
 
 These are real, citable statistics and regulatory frameworks tailored specifically for the Indian market. Use these at the RISE Conclave to prove that Indriya solves a critical, urgent, and heavily regulated problem in India.
 
 ---
 
-## Case Study 1: The Indian SOC Crisis — 95% Burnout & Alert Fatigue
+## Case Study 1: The Indian SOC Crisis- 95% Burnout & Alert Fatigue
 
 > **The Reality:** India is facing a massive cybersecurity talent shortage (approx. 1.5 million professionals missing), forcing existing Security Operations Center (SOC) teams to handle unsustainable workloads.
 
@@ -18,7 +18,7 @@ When an exhausted Indian analyst ignores a critical alert at 4:30 PM on a Friday
 
 ---
 
-## Case Study 2: RBI & SEBI Regulations — The "Human-in-the-Loop" Mandate
+## Case Study 2: RBI & SEBI Regulations - The "Human-in-the-Loop" Mandate
 
 > **The Reality:** Indian financial regulators are cracking down on "black box" AI. You can no longer blame the algorithm.
 

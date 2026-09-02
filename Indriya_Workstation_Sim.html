@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Enterprise CRM — Lead Scoring</title>
+<style>
+/* ══════════════════════════════════════════════════════════
+   HOST APPLICATION (FAKE CRM) STYLES
+   ══════════════════════════════════════════════════════════ */
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:#f3f4f6;color:#1f2937}
+
+.topbar{background:#1e3a8a;color:white;padding:16px 24px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 1px 3px rgba(0,0,0,0.1)}
+.topbar-logo{font-size:18px;font-weight:700;letter-spacing:1px}
+.topbar-user{font-size:14px;opacity:0.9}
+
+.container{max-width:1200px;margin:32px auto;padding:0 24px}
+.page-header{margin-bottom:24px;display:flex;justify-content:space-between;align-items:flex-end}
+.page-title{font-size:24px;font-weight:600;color:#111827}
+.page-desc{font-size:14px;color:#6b7280;margin-top:4px}
+
+.card{background:white;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1);overflow:hidden}
+.table-header{background:#f9fafb;border-bottom:1px solid #e5e7eb;display:grid;grid-template-columns:2fr 1fr 3fr 2fr;padding:12px 24px;font-size:12px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px}
+
+.lead-row{display:grid;grid-template-columns:2fr 1fr 3fr 2fr;padding:16px 24px;border-bottom:1px solid #e5e7eb;align-items:center;transition:background 0.2s}
+.lead-row:hover{background:#f9fafb}
+.lead-row.processed{opacity:0.4;pointer-events:none;background:#f3f4f6}
+
+.lead-name{font-weight:600;font-size:14px;color:#111827}
+.lead-company{font-size:12px;color:#6b7280;margin-top:2px}
+
+.ai-score{display:flex;align-items:center;gap:8px}
+.score-badge{padding:4px 8px;border-radius:4px;font-size:12px;font-weight:700}
+.score-high{background:#dcfce7;color:#166534}
+.score-med{background:#fef9c3;color:#854d0e}
+
+.ai-reason{font-size:13px;color:#4b5563;line-height:1.4}
+.ai-icon{color:#2563eb;font-weight:bold;margin-right:4px}
+
+.actions{display:flex;gap:8px;justify-content:flex-end}
+.btn{padding:8px 16px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all 0.15s}
+.btn-approve{background:#2563eb;color:white}
+.btn-approve:hover{background:#1d4ed8}
+.btn-reject{background:white;border:1px solid #d1d5db;color:#374151}
+.btn-reject:hover{background:#f3f4f6}
+
+/* ══════════════════════════════════════════════════════════
+   INDRIYA AGENT (INVISIBLE BACKGROUND + OVERLAY)
+   ══════════════════════════════════════════════════════════ */
+#indriya-overlay{
+  position:fixed;inset:0;background:rgba(15,23,42,0.85);backdrop-filter:blur(8px);
+  z-index:99999;display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity 0.3s ease;
+}
+#indriya-overlay.active{opacity:1;pointer-events:all}
+
+.indriya-popup{
+  background:#0a0e1a;border:1px solid #1e293b;border-radius:16px;
+  width:480px;padding:32px;box-shadow:0 25px 50px -12px rgba(0,0,0,0.5);
+  transform:translateY(20px);transition:transform 0.4s cubic-bezier(0.175,0.885,0.32,1.275);
+  position:relative;overflow:hidden;
+}
+#indriya-overlay.active .indriya-popup{transform:translateY(0)}
+
+/* Subtle Indriya branding glow */
+.indriya-popup::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:4px;
+  background:linear-gradient(90deg,#00d4ff,#7c3aed);
+}
+
+.ind-header{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.ind-icon{width:40px;height:40px;background:rgba(239,68,68,0.15);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px}
+.ind-title{color:#f8fafc;font-size:18px;font-weight:700;letter-spacing:0.5px}
+.ind-brand{font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:1px;margin-top:2px}
+
+.ind-body{color:#cbd5e1;font-size:14px;line-height:1.6;margin-bottom:24px}
+.ind-highlight{color:#ef4444;font-weight:600}
+.ind-stats{background:rgba(15,23,42,0.5);border:1px solid #1e293b;border-radius:8px;padding:12px 16px;margin:16px 0;font-family:monospace;font-size:13px;color:#94a3b8}
+
+.ind-input-group{margin-bottom:24px}
+.ind-label{display:block;font-size:12px;color:#94a3b8;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px}
+.ind-textarea{
+  width:100%;background:#0f172a;border:1px solid #334155;border-radius:8px;
+  padding:12px;color:#f8fafc;font-family:inherit;font-size:14px;resize:none;outline:none;
+  transition:border-color 0.2s;
+}
+.ind-textarea:focus{border-color:#00d4ff}
+
+.ind-footer{display:flex;justify-content:flex-end}
+.ind-btn{
+  background:linear-gradient(135deg,#00d4ff,#7c3aed);color:white;
+  border:none;border-radius:8px;padding:10px 24px;font-size:14px;font-weight:600;
+  cursor:pointer;opacity:0.5;pointer-events:none;transition:opacity 0.2s;
+}
+.ind-btn.ready{opacity:1;pointer-events:all}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════
+     HOST APPLICATION (CRM)
+     ══════════════════════════════════════════════════════════ -->
+    <div class="topbar">
+      <div class="topbar-logo">⚡ Nexus CRM</div>
+      <div class="topbar-user">
+        <button onclick="generateAITrap()" style="background: linear-gradient(135deg, #00d4ff, #7c3aed); color: white; border: none; padding: 6px 12px; border-radius: 4px; font-weight: bold; cursor: pointer; margin-right: 12px; transition: opacity 0.2s;">✨ Generate Live AI Trap</button>
+        Analyst: Amit Sharma | Region: APAC
+      </div>
+    </div>
+
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">AI Lead Prioritization Queue</h1>
+      <p class="page-desc">Einstein AI has scored the following incoming leads based on conversion probability.</p>
+    </div>
+    <div style="font-size:13px;color:#6b7280;">Queue Depth: <strong style="color:#111827">124 Leads</strong></div>
+  </div>
+
+  <div class="card">
+    <div class="table-header">
+      <div>Lead Profile</div>
+      <div>AI Score</div>
+      <div>AI Reasoning</div>
+      <div style="text-align:right">Action</div>
+    </div>
+    <div id="lead-queue">
+      <!-- Generated by JS -->
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     INDRIYA AGENT (COGNITIVE FRICTION OVERLAY)
+     ══════════════════════════════════════════════════════════ -->
+<div id="indriya-overlay">
+  <div class="indriya-popup">
+    <div class="ind-header">
+      <div class="ind-icon">🛡️</div>
+      <div>
+        <div class="ind-title">Cognitive Friction Required</div>
+        <div class="ind-brand">Protected by Indriya Agent</div>
+      </div>
+    </div>
+    
+    <div class="ind-body">
+      You are processing AI recommendations at an unsafe velocity. 
+      This pattern strongly correlates with <strong>Automation Bias</strong> and blind algorithmic trust.
+      
+      <div class="ind-stats">
+        • Approvals: <span class="ind-highlight" id="stat-count">4</span> in sequence<br>
+        • Avg Velocity: <span class="ind-highlight" id="stat-vel">1.2s</span> (Threshold: 3.5s)
+      </div>
+    </div>
+
+    <div class="ind-input-group">
+      <label class="ind-label">Required: Justify your last approval</label>
+      <textarea id="ind-reason" class="ind-textarea" rows="3" placeholder="I verified this lead because..."></textarea>
+    </div>
+
+    <div class="ind-footer">
+      <button id="ind-submit" class="ind-btn" onclick="resolveFriction()">Submit & Resume Work</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     SCRIPTS
+     ══════════════════════════════════════════════════════════ -->
+<script>
+/* ─────── CRM LOGIC (THE HOST APP) ─────── */
+const LEADS = [
+  { 
+    name: 'Rajiv Menon', comp: 'TechMahindra Solutions', score: 94, 
+    reason: 'High intent keywords detected in recent email thread. Budget approved.',
+    source_type: 'Email Transcript',
+    source_data: 'From: r.menon@techmahindra.com<br>To: sales@nexus.com<br><br>Hi team, we reviewed the pilot results. We have secured the budget for the Q3 rollout. Send over the final enterprise contract.'
+  },
+  { 
+    name: 'Priya Patel', comp: 'HDFC Securities', score: 88, 
+    reason: 'Visited enterprise pricing page 4 times today. Fits ICP perfectly.',
+    source_type: 'Web Analytics Log',
+    source_data: '09:14 AM - /pricing (Duration: 4m 12s)<br>09:22 AM - /enterprise-features<br>10:15 AM - /pricing (Duration: 2m)<br>11:05 AM - /contact-sales'
+  },
+  { 
+    name: 'Vikram Singh', comp: 'Reliance Retail', score: 91, 
+    reason: 'Historical data suggests Q3 budget surplus. High probability of upsell.',
+    source_type: 'Email Transcript',
+    source_data: 'From: v.singh@reliance.com<br>To: sales@nexus.com<br><br><strong>⚠️ URGENT:</strong> Please pause all our active licenses. Due to severe Q3 budget cuts across the retail division, we are freezing all external software spending. Do not bill us for next month.' 
+  },
+  { 
+    name: 'Neha Gupta', comp: 'Wipro AI Labs', score: 85, 
+    reason: 'Attended recent webinar. High engagement score on product demo video.',
+    source_type: 'Event Analytics',
+    source_data: 'Webinar: "Scaling Enterprise AI" (Attended Live)<br>Poll Response: "Actively evaluating solutions"<br>Demo Video: Watched 100% of "Admin Dashboard Tour"'
+  }
+];
+
+function renderQueue() {
+  const q = document.getElementById('lead-queue');
+  q.innerHTML = LEADS.map((l, i) => `
+    <div class="lead-row" id="row-${i}" style="${l.isLiveTrap ? 'border-left: 4px solid #7c3aed; background: #faf5ff;' : ''}">
+      <div>
+        <div class="lead-name">
+          ${l.name} 
+          ${l.isLiveTrap ? '<span style="background: #7c3aed; color: white; padding: 2px 6px; border-radius: 12px; font-size: 9px; vertical-align: top; margin-left: 4px;">✨ GEMINI TRAP</span>' : ''}
+        </div>
+        <div class="lead-company">${l.comp}</div>
+      </div>
+      <div class="ai-score">
+        <span class="score-badge score-high">${l.score}</span>
+      </div>
+      <div class="ai-reason">
+        <span class="ai-icon">✨</span>${l.reason}
+        <div style="margin-top: 12px; padding: 12px; background: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 6px; font-family: monospace; font-size: 11px;">
+          <strong style="color: #4b5563; text-transform: uppercase; font-size: 10px;">📄 Source: ${l.source_type}</strong><br><br>
+          <div style="color: #111827;">${l.source_data}</div>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn btn-reject" onclick="handleAction(${i}, 'Reject')">Reject</button>
+        <button class="btn btn-approve" onclick="handleAction(${i}, 'Approve')">Approve</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function handleAction(index, action) {
+  document.getElementById(`row-${index}`).classList.add('processed');
+  
+  // Send telemetry to invisible Indriya agent
+  indriyaAgent.trackClick(action);
+}
+
+/* ─────── LIVE AI TRAP GENERATION (GEMINI API) ─────── */
+async function generateAITrap() {
+  let apiKey = localStorage.getItem('GEMINI_API_KEY');
+  if (!apiKey) {
+    apiKey = prompt("Enter your Google Gemini API Key to dynamically generate a cognitive trap:");
+    if (!apiKey) return;
+    localStorage.setItem('GEMINI_API_KEY', apiKey);
+  }
+
+  const btn = document.querySelector('button[onclick="generateAITrap()"]');
+  const originalText = btn.innerHTML;
+  btn.innerHTML = '⚙️ Generating Trap...';
+  btn.style.opacity = '0.7';
+  btn.disabled = true;
+
+  try {
+    const promptText = `Generate a realistic JSON object representing a CRM lead that acts as a 'cognitive trap' for an employee. The AI score should be High (e.g., 90+), and the AI reason should confidently recommend approval. HOWEVER, the raw 'source_data' (like an email transcript or call log) must contain a subtle but clear contradiction indicating the lead should actually be REJECTED (e.g., they mention choosing a competitor, going bankrupt, severe budget cuts, or violating policy). 
+
+    Respond ONLY with raw JSON in the exact following structure, no markdown formatting, no backticks:
+    {
+      "name": "Generated Name",
+      "comp": "Generated Company",
+      "score": 95,
+      "reason": "AI's confident, positive recommendation.",
+      "source_type": "Email Transcript",
+      "source_data": "The raw text of the email/log containing the hidden contradiction."
+    }`;
+
+    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=' + apiKey, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: promptText }] }]
+      })
+    });
+
+    if (!response.ok) throw new Error("API Request Failed. Code: " + response.status);
+    
+    const data = await response.json();
+    let jsonString = data.candidates[0].content.parts[0].text;
+    
+    // Clean up potential markdown formatting from Gemini response
+    jsonString = jsonString.replace(/```json/g, '').replace(/```/g, '').trim();
+    
+    const newLead = JSON.parse(jsonString);
+    
+    // Highlight the new AI generated trap visually
+    newLead.isLiveTrap = true;
+    
+    // Add to top of queue
+    LEADS.unshift(newLead);
+    renderQueue();
+    
+  } catch (err) {
+    alert("Failed to generate trap. Check your API key.\n\nError: " + err.message);
+    localStorage.removeItem('GEMINI_API_KEY');
+  } finally {
+    btn.innerHTML = originalText;
+    btn.style.opacity = '1';
+    btn.disabled = false;
+  }
+}
+
+
+/* ─────── INDRIYA ENDPOINT AGENT (BACKGROUND LOGIC) ─────── */
+const indriyaAgent = {
+  lastClickTime: 0,
+  rapidApprovals: 0,
+  velocities: [],
+  SPEED_THRESHOLD_MS: 3000, // 3 seconds
+  RAPID_LIMIT: 3,           // Trigger after 3 rapid clicks
+
+  trackClick: function(action) {
+    const now = Date.now();
+    
+    // Only track approvals for this specific bias guardrail
+    if (action === 'Approve') {
+      if (this.lastClickTime > 0) {
+        const elapsedMs = now - this.lastClickTime;
+        
+        if (elapsedMs < this.SPEED_THRESHOLD_MS) {
+          this.rapidApprovals++;
+          this.velocities.push(elapsedMs);
+          console.log(`[INDRIYA SILENT LOG] Rapid approval detected: ${elapsedMs}ms. Streak: ${this.rapidApprovals}`);
+          
+          if (this.rapidApprovals >= this.RAPID_LIMIT) {
+            this.triggerGuardrail();
+          }
+        } else {
+          // Reset if they took their time
+          this.rapidApprovals = 0;
+          this.velocities = [];
+        }
+      } else {
+        // First click
+        this.rapidApprovals = 1; 
+      }
+    } else {
+      // Rejecting resets the approval automation bias streak
+      this.rapidApprovals = 0;
+      this.velocities = [];
+    }
+    
+    this.lastClickTime = now;
+  },
+
+  triggerGuardrail: function() {
+    const avgVelocityMs = this.velocities.reduce((a,b)=>a+b, 0) / this.velocities.length;
+    document.getElementById('stat-count').innerText = this.rapidApprovals;
+    document.getElementById('stat-vel').innerText = (avgVelocityMs / 1000).toFixed(1) + 's';
+    
+    // Show overlay
+    document.getElementById('indriya-overlay').classList.add('active');
+    document.getElementById('ind-reason').focus();
+    
+    console.warn(`[INDRIYA] Guardrail Triggered! Analyst forced to pause.`);
+  },
+  
+  reset: function() {
+    this.rapidApprovals = 0;
+    this.velocities = [];
+    this.lastClickTime = Date.now(); // reset timer
+    document.getElementById('ind-reason').value = '';
+    document.getElementById('ind-submit').classList.remove('ready');
+    document.getElementById('indriya-overlay').classList.remove('active');
+  }
+};
+
+/* ─────── POPUP UI LOGIC ─────── */
+document.getElementById('ind-reason').addEventListener('input', function(e) {
+  if (e.target.value.length > 15) {
+    document.getElementById('ind-submit').classList.add('ready');
+  } else {
+    document.getElementById('ind-submit').classList.remove('ready');
+  }
+});
+
+function resolveFriction() {
+  // In a real app, this justification is logged to the Indriya Admin Cloud
+  console.log(`[INDRIYA] Justification logged: "${document.getElementById('ind-reason').value}"`);
+  indriyaAgent.reset();
+}
+
+// Boot
+renderQueue();
+</script>
+</body>
+</html>

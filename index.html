@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Indriya — AI Behavioral Security | RISE Conclave 2026</title>
+<meta name="description" content="Indriya: Deep-tech endpoint behavioral security agent mitigating Automation Bias in Enterprise AI. IIT Kharagpur spin-off.">
+<style>
+:root {
+  --bg: #06090f;
+  --bg2: #0c1220;
+  --card: #111a2e;
+  --accent: #00d4ff;
+  --accent2: #7c3aed;
+  --text: #f8fafc;
+  --dim: #94a3b8;
+  --border: #1e293b;
+  --glow: 0 0 25px rgba(0, 212, 255, 0.15);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  padding: 20px 14px 40px;
+}
+.wrapper {
+  max-width: 580px;
+  width: 100%;
+}
+.hero {
+  text-align: center;
+  padding: 30px 10px 20px;
+}
+.badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: rgba(0, 212, 255, 0.1);
+  border: 1px solid rgba(0, 212, 255, 0.3);
+  padding: 5px 14px;
+  border-radius: 20px;
+  margin-bottom: 16px;
+}
+h1 {
+  font-size: 38px;
+  font-weight: 900;
+  letter-spacing: 5px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 8px;
+}
+.tagline {
+  font-size: 16px;
+  color: #e2e8f0;
+  line-height: 1.5;
+  font-style: italic;
+  margin-bottom: 8px;
+}
+.subline {
+  font-size: 13px;
+  color: var(--dim);
+}
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px;
+  margin-top: 18px;
+  box-shadow: var(--glow);
+}
+.card-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.card p {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #cbd5e1;
+}
+.stat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 14px;
+}
+.stat-box {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  text-align: center;
+}
+.stat-num {
+  font-size: 22px;
+  font-weight: 800;
+  color: #ef4444;
+}
+.stat-label {
+  font-size: 11px;
+  color: var(--dim);
+  margin-top: 4px;
+}
+.demo-btn-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 20px;
+}
+.demo-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(135deg, rgba(0, 212, 255, 0.1), rgba(124, 58, 237, 0.15));
+  border: 1px solid rgba(0, 212, 255, 0.4);
+  border-radius: 14px;
+  padding: 16px 20px;
+  text-decoration: none;
+  color: #fff;
+  transition: all 0.2s;
+}
+.demo-btn:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  background: linear-gradient(135deg, rgba(0, 212, 255, 0.2), rgba(124, 58, 237, 0.25));
+}
+.demo-btn .btn-text strong {
+  display: block;
+  font-size: 15px;
+  color: #fff;
+}
+.demo-btn .btn-text span {
+  font-size: 12px;
+  color: var(--dim);
+}
+.demo-btn .btn-arrow {
+  font-size: 20px;
+  color: var(--accent);
+}
+.founder-card {
+  background: linear-gradient(145deg, #0b1120, #141c33);
+  border: 1px solid rgba(124, 58, 237, 0.4);
+  border-radius: 16px;
+  padding: 20px;
+  margin-top: 22px;
+  text-align: center;
+}
+.founder-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+}
+.founder-title {
+  font-size: 13px;
+  color: #c084fc;
+  margin-top: 4px;
+}
+.founder-affil {
+  font-size: 12px;
+  color: var(--dim);
+  margin-top: 2px;
+}
+.contact-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+.c-btn {
+  flex: 1;
+  padding: 12px;
+  border-radius: 10px;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+  transition: opacity 0.2s;
+}
+.c-btn-wa {
+  background: #25d366;
+  color: #fff;
+}
+.c-btn-mail {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  color: #e2e8f0;
+}
+.c-btn:hover { opacity: 0.9; }
+.footer {
+  text-align: center;
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 30px;
+}
+</style>
+</head>
+<body>
+
+<div class="wrapper">
+  <div class="hero">
+    <div class="badge">RISE Conclave 2026 • Kolkata</div>
+    <h1>INDRIYA</h1>
+    <div class="tagline">"We measure what AI can't see — the human mind using it."</div>
+    <div class="subline">Endpoint Behavioral Security Agent & Algorithmic Trust Calibration</div>
+  </div>
+
+  <!-- The Problem -->
+  <div class="card">
+    <div class="card-title">⚠️ The Critical Industry Threat</div>
+    <p>
+      Enterprises deploying LLMs & AI copilots are bleeding millions because human operators fall into <strong>Automation Bias</strong> — blindly approving hallucinated or malicious AI recommendations without checking the source data.
+    </p>
+    <div class="stat-grid">
+      <div class="stat-box">
+        <div class="stat-num">4.3 hrs</div>
+        <div class="stat-label">Lost / week per analyst in manual fact-checking tax</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num">$25.6M</div>
+        <div class="stat-label">Lost in single enterprise deepfake/synthetic trust fraud (2024)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- The Solution -->
+  <div class="card">
+    <div class="card-title">🛡️ The Indriya Platform</div>
+    <p>
+      An invisible background endpoint agent that tracks employee cognitive velocity, deploys harmless <strong>Micro-Simulation Traps</strong> into daily workflows, and activates <strong>Cognitive Friction Speed Gates</strong> to ensure verifiable human oversight for <strong>EU AI Act (Article 14)</strong> and <strong>RBI FREE-AI</strong> compliance.
+    </p>
+  </div>
+
+  <!-- Live Demos Navigation -->
+  <div style="margin-top: 24px;">
+    <div style="font-size: 13px; text-transform: uppercase; letter-spacing: 1px; color: var(--dim); margin-bottom: 8px;">
+      🚀 Explore the Interactive Prototypes:
+    </div>
+    <div class="demo-btn-group">
+      <a href="Indriya_Workstation_Sim.html" class="demo-btn">
+        <div class="btn-text">
+          <strong>1. Employee CRM Workstation Simulator</strong>
+          <span>Try clicking "Approve" rapidly to trigger the Cognitive Friction Speed Gate</span>
+        </div>
+        <div class="btn-arrow">→</div>
+      </a>
+
+      <a href="Indriya_Dashboard.html" class="demo-btn">
+        <div class="btn-text">
+          <strong>2. CISO Executive Platform</strong>
+          <span>View real-time telemetry, Radar charts, and EU AI Act compliance logs</span>
+        </div>
+        <div class="btn-arrow">→</div>
+      </a>
+
+      <a href="Indriya_Pitch_Deck.html" class="demo-btn">
+        <div class="btn-text">
+          <strong>3. Interactive Pitch Deck</strong>
+          <span>Slide deck walking through market size, unit economics & GTM strategy</span>
+        </div>
+        <div class="btn-arrow">→</div>
+      </a>
+    </div>
+  </div>
+
+  <!-- Founders Section -->
+  <div style="margin-top: 32px; margin-bottom: 12px; text-align: center;">
+    <h3 style="font-size: 14px; color: var(--dim); text-transform: uppercase; letter-spacing: 2px;">The Founding Team</h3>
+  </div>
+  
+  <div class="founder-card" style="margin-top: 0; margin-bottom: 16px;">
+    <div class="founder-name">Bidyasundar Baksi</div>
+    <div class="founder-title">Co-Founder, Indriya</div>
+    <div class="founder-affil">PhD Researcher, Cognitive Neuroscience<br>Centre for Interdisciplinary & Convergent Tech, IIT Kharagpur</div>
+    
+    <div class="contact-actions">
+      <a href="https://wa.me/916297494102?text=Hi%20Bidyasundar,%20met%20at%20RISE%20Conclave%202026.%20Let's%20discuss%20Indriya!" class="c-btn c-btn-wa" target="_blank">💬 WhatsApp</a>
+      <a href="mailto:bidyasundarbaksi26@kgpian.iitkgp.ac.in?subject=Connecting%20from%20RISE%20Conclave%202026%20-%20Indriya" class="c-btn c-btn-mail">✉️ Email</a>
+    </div>
+  </div>
+
+  <div class="founder-card" style="margin-top: 0;">
+    <div class="founder-name">Prajeet Das</div>
+    <div class="founder-title">Co-Founder, Indriya</div>
+    <div class="founder-affil">PhD Researcher, Management<br>Vinod Gupta School of Management (VGSoM), IIT Kharagpur</div>
+    
+    <div class="contact-actions">
+      <!-- You can update Prajeet's phone number and email below later -->
+      <a href="https://wa.me/910000000000?text=Hi%20Prajeet,%20met%20at%20RISE%20Conclave%202026." class="c-btn c-btn-wa" target="_blank">💬 WhatsApp</a>
+      <a href="mailto:prajeet@kgpian.iitkgp.ac.in?subject=Connecting%20from%20RISE%20Conclave%202026" class="c-btn c-btn-mail">✉️ Email</a>
+    </div>
+  </div>
+
+  <div class="footer">
+    Indriya © 2026 • Deep-Tech Research Spinoff • IIT Kharagpur
+  </div>
+</div>
+
+</body>
+</html>

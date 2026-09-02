@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Indriya — Conference QR Code & Delegate Showcase</title>
+<style>
+:root {
+  --bg: #06090f;
+  --bg2: #0c1220;
+  --bg3: #111a2e;
+  --accent: #00d4ff;
+  --accent2: #7c3aed;
+  --text: #f8fafc;
+  --dim: #94a3b8;
+  --border: #1e293b;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 30px 16px;
+}
+.container {
+  max-width: 800px;
+  width: 100%;
+}
+.header {
+  text-align: center;
+  margin-bottom: 28px;
+}
+.header h1 {
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: 4px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.header p {
+  color: var(--dim);
+  font-size: 14px;
+  margin-top: 6px;
+}
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+@media (max-width: 720px) {
+  .grid { grid-template-columns: 1fr; }
+}
+.card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+}
+.badge-preview {
+  background: linear-gradient(145deg, #0b1120, #151f38);
+  border: 2px solid rgba(0, 212, 255, 0.4);
+  border-radius: 20px;
+  padding: 30px 24px;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 25px rgba(0, 212, 255, 0.15);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.badge-tag {
+  display: inline-block;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: rgba(0, 212, 255, 0.1);
+  border: 1px solid rgba(0, 212, 255, 0.3);
+  padding: 4px 12px;
+  border-radius: 20px;
+  margin-bottom: 12px;
+}
+.badge-title {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: 3px;
+  margin-bottom: 4px;
+}
+.badge-sub {
+  font-size: 11px;
+  color: var(--dim);
+  margin-bottom: 18px;
+  letter-spacing: 0.5px;
+}
+.qr-container {
+  background: #ffffff;
+  padding: 16px;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  display: inline-block;
+  margin-bottom: 16px;
+}
+.qr-container img {
+  display: block;
+  width: 200px;
+  height: 200px;
+}
+.badge-footer {
+  font-size: 12px;
+  color: #e2e8f0;
+  line-height: 1.5;
+}
+.badge-footer strong {
+  color: var(--accent);
+}
+.badge-affil {
+  font-size: 11px;
+  color: #94a3b8;
+  margin-top: 4px;
+}
+.input-group {
+  margin-bottom: 18px;
+}
+.input-group label {
+  display: block;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--dim);
+  margin-bottom: 8px;
+}
+.input-group input, .input-group select {
+  width: 100%;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  color: #fff;
+  font-size: 14px;
+  outline: none;
+}
+.input-group input:focus {
+  border-color: var(--accent);
+}
+.btn {
+  width: 100%;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 14px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: transform 0.15s, opacity 0.15s;
+}
+.btn:hover {
+  opacity: 0.92;
+  transform: translateY(-1px);
+}
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  margin-top: 10px;
+}
+.btn-outline:hover {
+  background: rgba(0, 212, 255, 0.1);
+}
+.help-box {
+  margin-top: 20px;
+  padding: 16px;
+  background: rgba(124, 58, 237, 0.1);
+  border: 1px solid rgba(124, 58, 237, 0.3);
+  border-radius: 12px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #cbd5e1;
+}
+.help-box strong {
+  color: #c084fc;
+}
+.help-box ol {
+  padding-left: 18px;
+  margin-top: 8px;
+}
+@media print {
+  body { background: white; color: black; padding: 0; }
+  .no-print { display: none !important; }
+  .badge-preview {
+    border: 2px solid #000;
+    box-shadow: none;
+    background: #fff;
+    color: #000;
+  }
+  .badge-title, .badge-footer strong { color: #000; }
+  .badge-sub, .badge-affil { color: #555; }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header no-print">
+    <h1>INDRIYA QR HUB</h1>
+    <p>Generate a scannable QR Code & Delegate Badge for RISE Conclave 2026</p>
+  </div>
+
+  <div class="grid">
+    <!-- QR Customizer (Controls) -->
+    <div class="card no-print">
+      <h3 style="font-size: 16px; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">
+        ⚙️ QR Code Destination
+      </h3>
+
+      <div class="input-group">
+        <label>URL / Link for Visitors to Open</label>
+        <input type="text" id="target-url" value="https://linkedin.com/in/" placeholder="https://your-site-or-profile.com" oninput="updateQR()">
+        <small style="font-size: 11px; color: #64748b; margin-top: 4px; display: block;">
+          Tip: Enter your LinkedIn, GitHub, Google Drive Pitch Deck, or hosted site link.
+        </small>
+      </div>
+
+      <div class="input-group">
+        <label>Badge Subtitle / Hook</label>
+        <input type="text" id="badge-subtitle" value="Scan to test the AI Behavioral Security Demo" oninput="updateBadgeText()">
+      </div>
+
+      <div class="input-group">
+        <label>QR Size / Resolution</label>
+        <select id="qr-res" onchange="updateQR()">
+          <option value="250x250">Standard (250x250 px)</option>
+          <option value="400x400" selected>High-Res for Print (400x400 px)</option>
+          <option value="600x600">Ultra-Res for Poster (600x600 px)</option>
+        </select>
+      </div>
+
+      <button class="btn" onclick="window.print()">🖨️ Print Delegate Card / Save PDF</button>
+      <button class="btn btn-outline" onclick="downloadQR()">📥 Download QR Code Image (.PNG)</button>
+
+      <div class="help-box">
+        <strong>💡 How to host the Live Demo online for FREE in 60s:</strong>
+        <ol>
+          <li>Open <strong>app.netlify.com/drop</strong> in your browser.</li>
+          <li>Drag-and-drop the folder containing your <code>Indriya_Workstation_Sim.html</code> or <code>Indriya_Dashboard.html</code>.</li>
+          <li>Netlify gives you a live public link (e.g. <code>https://indriya-demo.netlify.app</code>).</li>
+          <li>Paste that link into the box above, and anyone scanning the QR code will instantly experience the live demo on their phone!</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- Live Badge Preview -->
+    <div>
+      <div class="badge-preview" id="printable-badge">
+        <div class="badge-tag">RISE Conclave 2026 Delegate</div>
+        <div class="badge-title">I N D R I Y A</div>
+        <div class="badge-sub" id="preview-sub">Scan to test the AI Behavioral Security Demo</div>
+
+        <div class="qr-container">
+          <img id="qr-img" src="" alt="Indriya QR Code">
+        </div>
+
+        <div class="badge-footer">
+          <strong>Bidyasundar Baksi & Prajeet Das</strong>
+          <div class="badge-affil">PhD Researchers, IIT Kharagpur • Co-Founders, Indriya</div>
+          <div style="font-size: 10px; color: var(--dim); margin-top: 8px;" id="preview-url-text">https://linkedin.com/in/</div>
+        </div>
+      </div>
+
+      <div style="text-align: center; margin-top: 14px; font-size: 12px; color: var(--dim);" class="no-print">
+        📱 Try scanning this with your phone right now to test it!
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function getQRUrl(data, size) {
+  return `https://api.qrserver.com/v1/create-qr-code/?size=${size}&margin=10&data=${encodeURIComponent(data)}`;
+}
+
+function updateQR() {
+  const url = document.getElementById('target-url').value.trim() || 'https://indriya.ai';
+  const size = document.getElementById('qr-res').value;
+  const qrImg = document.getElementById('qr-img');
+  qrImg.src = getQRUrl(url, size);
+  document.getElementById('preview-url-text').textContent = url;
+}
+
+function updateBadgeText() {
+  const text = document.getElementById('badge-subtitle').value;
+  document.getElementById('preview-sub').textContent = text;
+}
+
+function downloadQR() {
+  const url = document.getElementById('target-url').value.trim() || 'https://indriya.ai';
+  const size = document.getElementById('qr-res').value;
+  const qrSource = getQRUrl(url, size);
+  
+  const link = document.createElement('a');
+  link.href = qrSource;
+  link.download = 'Indriya_QR_Code.png';
+  link.target = '_blank';
+  link.click();
+}
+
+// Initial render
+updateQR();
+</script>
+
+</body>
+</html>

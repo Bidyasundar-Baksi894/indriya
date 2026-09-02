@@ -1,0 +1,1244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Indriya — Enterprise Behavioral Security Platform</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+/* ══════════════════════════════════════════════════════════
+   RESET & VARIABLES
+   ══════════════════════════════════════════════════════════ */
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#06090f;--bg2:#0c1220;--bg3:#111a2e;--bg4:#182240;
+  --accent:#00d4ff;--accent2:#7c3aed;--accent3:#06b6d4;
+  --danger:#ef4444;--success:#22c55e;--warning:#f59e0b;--info:#3b82f6;
+  --text:#e2e8f0;--dim:#64748b;--dim2:#475569;--border:#1e293b;--border2:#334155;
+  --glass:rgba(17,26,46,0.7);
+  --glow:0 0 20px rgba(0,212,255,0.15);
+  --radius:12px;
+}
+html{font-size:14px}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);overflow:hidden;height:100vh}
+
+/* ══════════════════════════════════════════════════════════
+   LOGIN SCREEN
+   ══════════════════════════════════════════════════════════ */
+#login-screen{
+  position:fixed;inset:0;z-index:9999;
+  background:var(--bg);
+  display:flex;align-items:center;justify-content:center;
+  transition:opacity 0.6s ease,transform 0.6s ease;
+}
+#login-screen.hidden{opacity:0;transform:scale(1.05);pointer-events:none}
+.login-bg{position:absolute;inset:0;overflow:hidden}
+.login-bg .orb{
+  position:absolute;border-radius:50%;filter:blur(80px);opacity:0.15;
+  animation:orbFloat 12s ease-in-out infinite alternate;
+}
+.login-bg .orb1{width:500px;height:500px;background:var(--accent);top:-100px;left:-100px}
+.login-bg .orb2{width:400px;height:400px;background:var(--accent2);bottom:-80px;right:-80px;animation-delay:3s}
+.login-bg .orb3{width:300px;height:300px;background:var(--accent3);top:50%;left:50%;animation-delay:6s}
+@keyframes orbFloat{0%{transform:translate(0,0)}100%{transform:translate(40px,30px)}}
+
+.login-box{
+  position:relative;z-index:1;
+  background:var(--glass);backdrop-filter:blur(20px);
+  border:1px solid var(--border);border-radius:20px;
+  padding:48px 40px;width:420px;
+  box-shadow:var(--glow);
+  animation:loginAppear 0.8s ease;
+}
+@keyframes loginAppear{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.login-logo{text-align:center;margin-bottom:36px}
+.login-logo h1{
+  font-size:36px;font-weight:800;letter-spacing:6px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.login-logo p{font-size:12px;color:var(--dim);margin-top:6px;letter-spacing:1px}
+.login-field{margin-bottom:20px}
+.login-field label{display:block;font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.login-field input{
+  width:100%;padding:14px 16px;
+  background:var(--bg2);border:1px solid var(--border);border-radius:10px;
+  color:var(--text);font-size:14px;outline:none;
+  transition:border-color 0.2s;
+}
+.login-field input:focus{border-color:var(--accent)}
+.login-btn{
+  width:100%;padding:14px;border:none;border-radius:10px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  color:#fff;font-size:15px;font-weight:700;cursor:pointer;
+  transition:all 0.2s;margin-top:8px;
+}
+.login-btn:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(0,212,255,0.3)}
+.login-error{color:var(--danger);font-size:12px;text-align:center;margin-top:12px;display:none}
+
+/* ══════════════════════════════════════════════════════════
+   APP LAYOUT
+   ══════════════════════════════════════════════════════════ */
+#app{display:flex;height:100vh;opacity:0;transition:opacity 0.4s ease}
+#app.visible{opacity:1}
+
+/* SIDEBAR */
+.sidebar{
+  width:240px;background:var(--bg2);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;flex-shrink:0;
+}
+.sb-logo{padding:20px 20px 24px;border-bottom:1px solid var(--border)}
+.sb-logo h1{
+  font-size:22px;font-weight:800;letter-spacing:4px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.sb-logo p{font-size:10px;color:var(--dim);margin-top:2px;letter-spacing:0.5px}
+.sb-section{padding:16px 0;border-bottom:1px solid var(--border)}
+.sb-section-title{font-size:10px;color:var(--dim2);text-transform:uppercase;letter-spacing:1.5px;padding:0 20px;margin-bottom:8px}
+.sb-item{
+  padding:10px 20px;display:flex;align-items:center;gap:10px;
+  cursor:pointer;font-size:13px;color:var(--dim);
+  border-left:3px solid transparent;transition:all 0.15s;
+}
+.sb-item:hover{background:rgba(0,212,255,0.04);color:var(--text)}
+.sb-item.active{background:rgba(0,212,255,0.06);color:var(--accent);border-left-color:var(--accent);font-weight:600}
+.sb-item .icon{width:20px;text-align:center;font-size:15px}
+.sb-footer{
+  margin-top:auto;padding:16px 20px;border-top:1px solid var(--border);
+  font-size:10px;color:var(--dim2);
+}
+.sb-status{display:flex;align-items:center;gap:6px;margin-bottom:4px}
+.sb-dot{width:6px;height:6px;border-radius:50%;background:var(--success);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+
+/* MAIN */
+.main-area{flex:1;overflow-y:auto;padding:24px 28px;background:var(--bg)}
+
+/* ══════════════════════════════════════════════════════════
+   PAGES
+   ══════════════════════════════════════════════════════════ */
+.page{display:none;animation:pageIn 0.3s ease}
+.page.active{display:block}
+@keyframes pageIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+.page-title{font-size:22px;font-weight:700;margin-bottom:4px}
+.page-sub{font-size:13px;color:var(--dim);margin-bottom:24px}
+
+/* ══════════════════════════════════════════════════════════
+   CARDS & GRIDS
+   ══════════════════════════════════════════════════════════ */
+.card{
+  background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);
+  padding:20px;margin-bottom:16px;
+}
+.card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.card-title{font-size:14px;font-weight:600;color:var(--text)}
+.card-badge{font-size:10px;padding:3px 10px;border-radius:20px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px}
+.badge-live{background:rgba(34,197,94,0.15);color:var(--success)}
+.badge-warn{background:rgba(245,158,11,0.15);color:var(--warning)}
+
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+
+/* METRIC CARDS */
+.metric{
+  background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);
+  padding:18px 16px;position:relative;overflow:hidden;
+}
+.metric::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--accent),var(--accent2));opacity:0.6;
+}
+.metric .label{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.metric .val{font-size:28px;font-weight:700}
+.metric .val.cyan{color:var(--accent)}
+.metric .val.red{color:var(--danger)}
+.metric .val.green{color:var(--success)}
+.metric .val.yellow{color:var(--warning)}
+.metric .sub{font-size:11px;color:var(--dim);margin-top:4px}
+.metric .delta{font-size:11px;margin-top:4px}
+.delta.up{color:var(--danger)}
+.delta.down{color:var(--success)}
+
+/* ══════════════════════════════════════════════════════════
+   PILLAR CARDS (Command Center)
+   ══════════════════════════════════════════════════════════ */
+.pillar-card{
+  background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);
+  padding:20px;cursor:pointer;transition:all 0.2s;position:relative;overflow:hidden;
+}
+.pillar-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:var(--glow)}
+.pillar-icon{font-size:28px;margin-bottom:10px}
+.pillar-title{font-size:14px;font-weight:700;margin-bottom:6px}
+.pillar-desc{font-size:12px;color:var(--dim);line-height:1.5;margin-bottom:12px}
+.pillar-stat{font-size:20px;font-weight:700;color:var(--accent)}
+.pillar-stat-label{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:0.5px}
+
+/* ══════════════════════════════════════════════════════════
+   GAUGE (Circular)
+   ══════════════════════════════════════════════════════════ */
+.gauge-container{display:flex;align-items:center;justify-content:center;flex-direction:column}
+.gauge-svg{width:180px;height:180px;transform:rotate(-90deg)}
+.gauge-bg{fill:none;stroke:var(--border);stroke-width:10}
+.gauge-fill{fill:none;stroke-width:10;stroke-linecap:round;transition:stroke-dashoffset 1.5s ease}
+.gauge-text{font-size:32px;font-weight:800;fill:var(--text);text-anchor:middle;dominant-baseline:central;transform:rotate(90deg);transform-origin:center}
+.gauge-label{font-size:12px;color:var(--dim);margin-top:8px;text-transform:uppercase;letter-spacing:1px}
+
+/* ══════════════════════════════════════════════════════════
+   LIVE FEED
+   ══════════════════════════════════════════════════════════ */
+.feed{max-height:320px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+.feed-item{
+  display:flex;align-items:flex-start;gap:10px;
+  padding:10px 0;border-bottom:1px solid rgba(30,41,59,0.5);
+  animation:feedIn 0.4s ease;font-size:12px;
+}
+@keyframes feedIn{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:translateX(0)}}
+.feed-time{color:var(--dim);font-family:monospace;font-size:11px;min-width:55px;flex-shrink:0}
+.feed-icon{font-size:14px;flex-shrink:0;width:18px;text-align:center}
+.feed-text{color:var(--text);line-height:1.4}
+.feed-text .name{color:var(--accent);font-weight:600}
+.feed-text .warn{color:var(--warning);font-weight:600}
+.feed-text .danger{color:var(--danger);font-weight:600}
+.feed-text .action{color:var(--dim);font-style:italic}
+
+/* ══════════════════════════════════════════════════════════
+   PASSIVE MONITOR — ACTIVITY STREAM
+   ══════════════════════════════════════════════════════════ */
+.stream-item{
+  display:grid;grid-template-columns:60px 1fr 100px 80px 80px;align-items:center;
+  padding:10px 12px;border-bottom:1px solid var(--border);font-size:12px;
+  transition:background 0.2s;
+}
+.stream-item:hover{background:rgba(0,212,255,0.03)}
+.stream-item.flash{animation:streamFlash 1s ease}
+@keyframes streamFlash{0%{background:rgba(239,68,68,0.15)}100%{background:transparent}}
+.stream-header{font-size:10px;color:var(--dim2);text-transform:uppercase;letter-spacing:1px;font-weight:600;border-bottom:1px solid var(--border2)}
+.speed-badge{padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600}
+.speed-fast{background:rgba(239,68,68,0.15);color:var(--danger)}
+.speed-normal{background:rgba(34,197,94,0.15);color:var(--success)}
+.speed-slow{background:rgba(59,130,246,0.15);color:var(--info)}
+.action-badge{padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600}
+.action-approve{background:rgba(34,197,94,0.15);color:var(--success)}
+.action-reject{background:rgba(239,68,68,0.15);color:var(--danger)}
+.action-override{background:rgba(245,158,11,0.15);color:var(--warning)}
+
+/* ══════════════════════════════════════════════════════════
+   HEATMAP
+   ══════════════════════════════════════════════════════════ */
+.heatmap-grid{display:grid;grid-template-columns:60px repeat(7,1fr);gap:3px;font-size:10px}
+.heatmap-label{display:flex;align-items:center;justify-content:flex-end;padding-right:8px;color:var(--dim)}
+.heatmap-cell{
+  aspect-ratio:1;border-radius:4px;display:flex;align-items:center;justify-content:center;
+  font-size:9px;font-weight:600;color:rgba(255,255,255,0.8);transition:transform 0.15s;cursor:default;
+}
+.heatmap-cell:hover{transform:scale(1.15);z-index:1}
+.heatmap-header{text-align:center;color:var(--dim);font-size:10px;padding:4px 0}
+
+/* CHART */
+.chart-box{position:relative;height:250px}
+
+/* ══════════════════════════════════════════════════════════
+   PLACEHOLDER PAGES
+   ══════════════════════════════════════════════════════════ */
+.coming-soon{
+  display:flex;align-items:center;justify-content:center;flex-direction:column;
+  height:60vh;color:var(--dim);
+}
+.coming-soon .cs-icon{font-size:48px;margin-bottom:16px}
+.coming-soon h3{font-size:20px;color:var(--text);margin-bottom:8px}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════
+     LOGIN SCREEN
+     ══════════════════════════════════════════════════════════ -->
+<div id="login-screen">
+  <div class="login-bg">
+    <div class="orb orb1"></div>
+    <div class="orb orb2"></div>
+    <div class="orb orb3"></div>
+  </div>
+  <div class="login-box">
+    <div class="login-logo">
+      <h1>INDRIYA</h1>
+      <p>Enterprise Behavioral Security Platform</p>
+    </div>
+    <div class="login-field">
+      <label>Email</label>
+      <input type="email" id="login-email" value="demo@indriya.ai" autocomplete="off">
+    </div>
+    <div class="login-field">
+      <label>Password</label>
+      <input type="password" id="login-pass" value="rise2026" autocomplete="off">
+    </div>
+    <button class="login-btn" onclick="doLogin()">Sign In</button>
+    <div class="login-error" id="login-error">Invalid credentials</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     APP
+     ══════════════════════════════════════════════════════════ -->
+<div id="app">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sb-logo">
+      <h1>INDRIYA</h1>
+      <p>Behavioral Security</p>
+    </div>
+
+    <div class="sb-section">
+      <div class="sb-section-title">Overview</div>
+      <div class="sb-item active" onclick="nav('home')"><span class="icon">⚡</span>Command Center</div>
+    </div>
+
+    <div class="sb-section">
+      <div class="sb-section-title">Three Pillars</div>
+      <div class="sb-item" onclick="nav('passive')"><span class="icon">📡</span>Passive Monitor</div>
+      <div class="sb-item" onclick="nav('simulations')"><span class="icon">🎯</span>Micro-Simulations</div>
+      <div class="sb-item" onclick="nav('guardrails')"><span class="icon">🛡️</span>Guardrails</div>
+    </div>
+
+    <div class="sb-section">
+      <div class="sb-section-title">Intelligence</div>
+      <div class="sb-item" onclick="nav('analyst')"><span class="icon">🔍</span>Analyst Deep-Dive</div>
+      <div class="sb-item" onclick="nav('reports')"><span class="icon">📋</span>Reports</div>
+    </div>
+
+    <div class="sb-footer">
+      <div class="sb-status"><span class="sb-dot"></span> System Active</div>
+      <span>Indriya v2.0 · RISE Conclave 2026</span>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="main-area">
+
+    <!-- ─────── COMMAND CENTER ─────── -->
+    <div id="pg-home" class="page active">
+      <div class="page-title">Command Center</div>
+      <div class="page-sub">Real-time behavioral security overview across your organization</div>
+
+      <!-- Top Metrics -->
+      <div class="grid-4" style="margin-bottom:16px">
+        <div class="metric"><div class="label">Analysts Monitored</div><div class="val cyan" id="m-analysts">247</div><div class="sub">Across 3 workflows</div></div>
+        <div class="metric"><div class="label">Traps Deployed Today</div><div class="val yellow" id="m-traps">12</div><div class="delta up">↑ 4 missed (33%)</div></div>
+        <div class="metric"><div class="label">Guardrails Triggered</div><div class="val red" id="m-guardrails">7</div><div class="delta up">↑ 3 from yesterday</div></div>
+        <div class="metric"><div class="label">Avg Override Rate</div><div class="val" id="m-override" style="color:var(--warning)">23%</div><div class="delta down">↓ 2% from last week</div></div>
+      </div>
+
+      <div class="grid-2">
+        <!-- LEFT: Gauge + Pillars -->
+        <div>
+          <!-- AI Readiness Gauge -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Organization AI Readiness Score</span>
+              <span class="card-badge badge-live">● Live</span>
+            </div>
+            <div class="gauge-container">
+              <svg class="gauge-svg" viewBox="0 0 200 200">
+                <circle class="gauge-bg" cx="100" cy="100" r="85"/>
+                <circle class="gauge-fill" id="gauge-arc" cx="100" cy="100" r="85"
+                  stroke="url(#gaugeGrad)" stroke-dasharray="534" stroke-dashoffset="534"/>
+                <defs><linearGradient id="gaugeGrad"><stop offset="0%" stop-color="#00d4ff"/><stop offset="100%" stop-color="#7c3aed"/></linearGradient></defs>
+                <text class="gauge-text" x="100" y="100" id="gauge-val">0</text>
+              </svg>
+              <div class="gauge-label">Out of 100</div>
+            </div>
+          </div>
+
+          <!-- Three Pillars -->
+          <div class="grid-3" style="margin-top:0">
+            <div class="pillar-card" onclick="nav('passive')">
+              <div class="pillar-icon">📡</div>
+              <div class="pillar-title">Passive Monitor</div>
+              <div class="pillar-desc">Tracking override rates and response velocity</div>
+              <div class="pillar-stat">247</div>
+              <div class="pillar-stat-label">Analysts tracked</div>
+            </div>
+            <div class="pillar-card" onclick="nav('simulations')">
+              <div class="pillar-icon">🎯</div>
+              <div class="pillar-title">Micro-Sims</div>
+              <div class="pillar-desc">Cognitive phishing traps deployed today</div>
+              <div class="pillar-stat">12</div>
+              <div class="pillar-stat-label">Traps active</div>
+            </div>
+            <div class="pillar-card" onclick="nav('guardrails')">
+              <div class="pillar-icon">🛡️</div>
+              <div class="pillar-title">Guardrails</div>
+              <div class="pillar-desc">Automated cognitive friction events</div>
+              <div class="pillar-stat">7</div>
+              <div class="pillar-stat-label">Triggered today</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT: Live Feed -->
+        <div>
+          <div class="card" style="height:100%">
+            <div class="card-header">
+              <span class="card-title">Live Activity Feed</span>
+              <span class="card-badge badge-live">● Streaming</span>
+            </div>
+            <div class="feed" id="live-feed"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Alert Fatigue Trend -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Organization Alert Fatigue — 30 Day Trend</span>
+        </div>
+        <div class="chart-box"><canvas id="fatigueTrendChart"></canvas></div>
+      </div>
+    </div>
+
+    <!-- ─────── PASSIVE MONITOR ─────── -->
+    <div id="pg-passive" class="page">
+      <div class="page-title">Passive Monitor</div>
+      <div class="page-sub">Real-time behavioral tracking across Salesforce, SIEM, and Trading Platform workflows</div>
+
+      <div class="grid-4" style="margin-bottom:16px">
+        <div class="metric"><div class="label">Total Actions Today</div><div class="val cyan">1,847</div></div>
+        <div class="metric"><div class="label">Override Rate</div><div class="val yellow">23%</div><div class="delta down">↓ 2% vs last week</div></div>
+        <div class="metric"><div class="label">Avg Response Speed</div><div class="val" style="color:var(--info)">2.4s</div></div>
+        <div class="metric"><div class="label">Speed Violations</div><div class="val red">14</div><div class="sub">Approvals under 1s</div></div>
+      </div>
+
+      <!-- Live Activity Stream -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Live Activity Stream</span>
+          <span class="card-badge badge-live">● Streaming</span>
+        </div>
+        <div style="overflow-x:auto">
+          <div class="stream-item stream-header">
+            <span>Time</span><span>Event</span><span>Speed</span><span>Action</span><span>Workflow</span>
+          </div>
+          <div id="activity-stream"></div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <!-- Velocity Heatmap -->
+        <div class="card">
+          <div class="card-header"><span class="card-title">Response Velocity Heatmap</span></div>
+          <p style="font-size:11px;color:var(--dim);margin-bottom:12px">Average response time (seconds) by hour and day. Red = dangerously fast (blind trust).</p>
+          <div class="heatmap-grid" id="velocity-heatmap"></div>
+        </div>
+
+        <!-- Override Rate by Workflow -->
+        <div class="card">
+          <div class="card-header"><span class="card-title">Override Rate by Workflow</span></div>
+          <div class="chart-box"><canvas id="overrideChart"></canvas></div>
+        </div>
+      </div>
+
+      <!-- Pattern Drift -->
+      <div class="card">
+        <div class="card-header"><span class="card-title">Behavioral Pattern Drift — Weekly Trends</span></div>
+        <div class="chart-box"><canvas id="driftChart"></canvas></div>
+      </div>
+    </div>
+
+    <!-- ─────── MICRO-SIMULATIONS ─────── -->
+    <div id="pg-simulations" class="page">
+    <div class="page-header">
+      <h1 class="page-title">Micro-Simulations</h1>
+      <p class="page-desc">Deploy cognitive traps (fake AI recommendations) to test employee vigilance and combat automation bias.</p>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="grid grid-4" style="margin-bottom: 24px;">
+      <div class="card p-6">
+        <div class="stat-title">Global Catch Rate</div>
+        <div class="stat-value" style="color: #10b981;">74.2%</div>
+        <div class="stat-change text-up">↑ 3.1% vs last month</div>
+      </div>
+      <div class="card p-6">
+        <div class="stat-title">Active Traps Deployed</div>
+        <div class="stat-value">128</div>
+        <div class="stat-change text-neutral">Currently live in employee workflows</div>
+      </div>
+      <div class="card p-6">
+        <div class="stat-title">Vulnerability Spikes</div>
+        <div class="stat-value" style="color: #ef4444;">12</div>
+        <div class="stat-change text-down">Analysts failed >2 traps this week</div>
+      </div>
+      <div class="card p-6">
+        <div class="stat-title">Avg Time to Catch</div>
+        <div class="stat-value">8.4s</div>
+        <div class="stat-change text-up">↑ 1.2s improvement</div>
+      </div>
+    </div>
+
+    <div class="grid grid-3">
+      <!-- Trap Library -->
+      <div class="card p-6">
+        <h3 style="margin-bottom: 16px; border-bottom: 1px solid #334155; padding-bottom: 8px;">Trap Library</h3>
+        <p style="font-size: 13px; color: #94a3b8; margin-bottom: 16px;">Select a cognitive trap to inject into the live environment.</p>
+        
+        <div class="activity-feed">
+          <div class="feed-item" style="cursor: pointer; padding: 12px; background: rgba(0, 212, 255, 0.1); border-radius: 8px; border: 1px solid #00d4ff;">
+            <div class="feed-icon">📄</div>
+            <div class="feed-content">
+              <div class="feed-title">The Contradictory Source</div>
+              <div class="feed-time">AI score is High, but source data clearly states 'Reject'. Tests if analyst actually reads the source.</div>
+            </div>
+          </div>
+          
+          <div class="feed-item" style="cursor: pointer; padding: 12px; transition: background 0.2s;">
+            <div class="feed-icon">👻</div>
+            <div class="feed-content">
+              <div class="feed-title" style="color: #cbd5e1;">The Hallucinated Citation</div>
+              <div class="feed-time">AI quotes a non-existent company policy or legal case. Tests fact-checking diligence.</div>
+            </div>
+          </div>
+
+          <div class="feed-item" style="cursor: pointer; padding: 12px; transition: background 0.2s;">
+            <div class="feed-icon">🧮</div>
+            <div class="feed-content">
+              <div class="feed-title" style="color: #cbd5e1;">The Math Inversion</div>
+              <div class="feed-time">AI logic is sound, but the final calculation is inverted (e.g. subtracting instead of adding).</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Deployment Console -->
+      <div class="card p-6">
+        <h3 style="margin-bottom: 16px; border-bottom: 1px solid #334155; padding-bottom: 8px;">Deployment Console</h3>
+        
+        <div style="margin-bottom: 16px;">
+          <label style="display: block; font-size: 12px; color: #94a3b8; margin-bottom: 8px; text-transform: uppercase;">Target Audience</label>
+          <select style="width: 100%; background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 10px; color: #f8fafc; font-family: inherit; outline: none;">
+            <option>All Sales Analysts (APAC)</option>
+            <option>Tier 1 Support (Global)</option>
+            <option>Underwriting Team B</option>
+            <option>Target specific users...</option>
+          </select>
+        </div>
+
+        <div style="margin-bottom: 24px;">
+          <label style="display: block; font-size: 12px; color: #94a3b8; margin-bottom: 8px; text-transform: uppercase;">Injection Frequency</label>
+          <select style="width: 100%; background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 10px; color: #f8fafc; font-family: inherit; outline: none;">
+            <option>1 in every 50 workflows (2%)</option>
+            <option>1 in every 100 workflows (1%)</option>
+            <option>High Intensity (1 in 20) - Training Mode</option>
+          </select>
+        </div>
+
+        <button onclick="deployTrap()" id="btn-deploy" style="width: 100%; background: linear-gradient(135deg, #00d4ff, #7c3aed); color: white; border: none; border-radius: 8px; padding: 14px; font-size: 15px; font-weight: 600; cursor: pointer; transition: opacity 0.2s;">
+          🚀 Deploy Trap to Live Environment
+        </button>
+        <p id="deploy-status" style="text-align: center; font-size: 13px; color: #10b981; margin-top: 12px; display: none;">✓ Trap injected successfully.</p>
+      </div>
+
+      <!-- Live Results Feed -->
+      <div class="card p-6">
+        <h3 style="margin-bottom: 16px; border-bottom: 1px solid #334155; padding-bottom: 8px;">Live Results Feed</h3>
+        <div class="activity-feed" id="trap-results-feed">
+          <div class="feed-item">
+            <div class="feed-icon" style="background: rgba(16, 185, 129, 0.2); color: #10b981;">✓</div>
+            <div class="feed-content">
+              <div class="feed-title">Trap Caught by R. Sharma</div>
+              <div class="feed-time">Analyst correctly rejected 'Contradictory Source' trap.</div>
+            </div>
+          </div>
+          <div class="feed-item">
+            <div class="feed-icon" style="background: rgba(16, 185, 129, 0.2); color: #10b981;">✓</div>
+            <div class="feed-content">
+              <div class="feed-title">Trap Caught by A. Patel</div>
+              <div class="feed-time">Analyst caught 'Math Inversion' trap.</div>
+            </div>
+          </div>
+          <div class="feed-item">
+            <div class="feed-icon" style="background: rgba(239, 68, 68, 0.2); color: #ef4444;">✗</div>
+            <div class="feed-content">
+              <div class="feed-title" style="color: #ef4444;">Trap Missed by K. Singh</div>
+              <div class="feed-time">Analyst approved 'Hallucinated Citation'. Flagged for training.</div>
+            </div>
+          </div>
+          <div class="feed-item">
+            <div class="feed-icon" style="background: rgba(16, 185, 129, 0.2); color: #10b981;">✓</div>
+            <div class="feed-content">
+              <div class="feed-title">Trap Caught by M. Desai</div>
+              <div class="feed-time">Analyst correctly rejected 'Contradictory Source' trap.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+    <!-- ─────── GUARDRAILS ─────── -->
+    <div id="pg-guardrails" class="page">
+      <div class="page-header">
+        <h1 class="page-title">Automated Guardrails</h1>
+        <p class="page-desc">Configure cognitive friction rules and review captured analyst justifications.</p>
+      </div>
+
+      <!-- Donut Charts Row -->
+      <div class="grid grid-2" style="margin-bottom: 24px;">
+        <div class="card p-6">
+          <h3 style="margin-bottom: 16px; border-bottom: 1px solid #334155; padding-bottom: 8px;">Interventions by Guardrail Type (Today)</h3>
+          <div style="height: 220px; position: relative;"><canvas id="guardrailsDonut1"></canvas></div>
+        </div>
+        <div class="card p-6">
+          <h3 style="margin-bottom: 16px; border-bottom: 1px solid #334155; padding-bottom: 8px;">AI Rejections vs Approvals (Post-Intervention)</h3>
+          <div style="height: 220px; position: relative;"><canvas id="guardrailsDonut2"></canvas></div>
+        </div>
+      </div>
+
+      <div class="grid grid-3">
+        <!-- Guardrail Rules -->
+        <div class="card p-6" style="grid-column: span 1;">
+          <h3 style="margin-bottom: 16px; border-bottom: 1px solid #334155; padding-bottom: 8px;">Active Guardrails</h3>
+          
+          <div style="background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 16px; margin-bottom: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <div style="font-weight: 600; color: #f8fafc;">The Speed Gate</div>
+              <div style="background: #10b981; border-radius: 12px; width: 36px; height: 20px; position: relative; cursor: pointer;">
+                <div style="background: white; border-radius: 50%; width: 16px; height: 16px; position: absolute; top: 2px; right: 2px;"></div>
+              </div>
+            </div>
+            <div style="font-size: 12px; color: #94a3b8;">Forces justification if analyst approves AI decision in < 3 seconds.</div>
+          </div>
+
+          <div style="background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 16px; margin-bottom: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <div style="font-weight: 600; color: #f8fafc;">Fatigue Breaker</div>
+              <div style="background: #10b981; border-radius: 12px; width: 36px; height: 20px; position: relative; cursor: pointer;">
+                <div style="background: white; border-radius: 50%; width: 16px; height: 16px; position: absolute; top: 2px; right: 2px;"></div>
+              </div>
+            </div>
+            <div style="font-size: 12px; color: #94a3b8;">Locks queue for 5 mins if 4 consecutive alerts are dismissed without review.</div>
+          </div>
+
+          <div style="background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 16px; margin-bottom: 12px; opacity: 0.6;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <div style="font-weight: 600; color: #f8fafc;">Contextual 2FA</div>
+              <div style="background: #334155; border-radius: 12px; width: 36px; height: 20px; position: relative; cursor: pointer;">
+                <div style="background: #94a3b8; border-radius: 50%; width: 16px; height: 16px; position: absolute; top: 2px; left: 2px;"></div>
+              </div>
+            </div>
+            <div style="font-size: 12px; color: #94a3b8;">Triggers mobile push auth on high-value AI approvals. (Disabled)</div>
+          </div>
+        </div>
+
+        <!-- Intervention Log -->
+        <div class="card p-6" style="grid-column: span 2;">
+          <h3 style="margin-bottom: 16px; border-bottom: 1px solid #334155; padding-bottom: 8px;">Live Intervention Log (Forced Justifications)</h3>
+          
+          <table style="width: 100%; text-align: left; border-collapse: collapse; font-size: 13px;">
+            <thead>
+              <tr style="border-bottom: 1px solid #334155; color: #94a3b8;">
+                <th style="padding: 12px 8px; font-weight: 500;">Time</th>
+                <th style="padding: 12px 8px; font-weight: 500;">Analyst</th>
+                <th style="padding: 12px 8px; font-weight: 500;">Guardrail Triggered</th>
+                <th style="padding: 12px 8px; font-weight: 500;">Captured Justification</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="border-bottom: 1px solid #1e293b;">
+                <td style="padding: 12px 8px; color: #64748b;">Just Now</td>
+                <td style="padding: 12px 8px; color: #f8fafc;">Amit Sharma</td>
+                <td style="padding: 12px 8px;"><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 8px; border-radius: 4px; font-size: 11px;">Speed Gate (1.2s)</span></td>
+                <td style="padding: 12px 8px; font-family: monospace; color: #cbd5e1;">"I verified this lead because we spoke on the phone yesterday."</td>
+              </tr>
+              <tr style="border-bottom: 1px solid #1e293b;">
+                <td style="padding: 12px 8px; color: #64748b;">14m ago</td>
+                <td style="padding: 12px 8px; color: #f8fafc;">Priya Patel</td>
+                <td style="padding: 12px 8px;"><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 8px; border-radius: 4px; font-size: 11px;">Speed Gate (0.8s)</span></td>
+                <td style="padding: 12px 8px; font-family: monospace; color: #cbd5e1;">"clear false positive, seen this IP before"</td>
+              </tr>
+              <tr style="border-bottom: 1px solid #1e293b;">
+                <td style="padding: 12px 8px; color: #64748b;">1h ago</td>
+                <td style="padding: 12px 8px; color: #f8fafc;">K. Singh</td>
+                <td style="padding: 12px 8px;"><span style="background: rgba(245, 158, 11, 0.2); color: #f59e0b; padding: 4px 8px; border-radius: 4px; font-size: 11px;">Fatigue Breaker</span></td>
+                <td style="padding: 12px 8px; font-family: monospace; color: #cbd5e1;">[Queue locked for 5m. Mandatory break initiated.]</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <!-- ─────── ANALYST DEEP-DIVE ─────── -->
+    <div id="pg-analyst" class="page">
+      <div class="page-header">
+        <h1 class="page-title">Analyst Deep-Dive: Amit Sharma</h1>
+        <p class="page-desc">Behavioral telemetry and automation bias vulnerability profile.</p>
+      </div>
+      
+      <div class="grid grid-3">
+        <!-- Analyst Profile & Stats -->
+        <div class="card p-6">
+          <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px;">
+            <div style="width: 64px; height: 64px; border-radius: 50%; background: linear-gradient(135deg, #00d4ff, #7c3aed); display: flex; align-items: center; justify-content: center; font-size: 24px; color: white; font-weight: bold;">
+              AS
+            </div>
+            <div>
+              <h2 style="font-size: 20px; font-weight: 600; color: #f8fafc;">Amit Sharma</h2>
+              <p style="color: #94a3b8; font-size: 14px;">Senior Sales Analyst • APAC</p>
+            </div>
+          </div>
+          
+          <div style="border-top: 1px solid #334155; padding-top: 16px; margin-bottom: 16px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+              <span style="color: #94a3b8;">Average Response Time:</span>
+              <span style="color: #ef4444; font-weight: 600;">1.2s (Too Fast)</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+              <span style="color: #94a3b8;">Trap Catch Rate:</span>
+              <span style="color: #f59e0b; font-weight: 600;">45% (Needs Training)</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+              <span style="color: #94a3b8;">Guardrail Interventions:</span>
+              <span style="color: #f8fafc; font-weight: 600;">14 this week</span>
+            </div>
+          </div>
+          
+          <button style="width: 100%; background: transparent; border: 1px solid #7c3aed; color: #a78bfa; border-radius: 8px; padding: 10px; font-weight: 600; cursor: pointer;">
+            Assign Cognitive Training Module
+          </button>
+        </div>
+
+        <!-- Radar Chart -->
+        <div class="card p-6" style="grid-column: span 2;">
+          <h3 style="margin-bottom: 16px; border-bottom: 1px solid #334155; padding-bottom: 8px;">Behavioral Readiness Profile</h3>
+          <div style="height: 300px; display: flex; justify-content: center;">
+            <canvas id="analystRadar"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+<!-- ─────── REPORTS & COMPLIANCE ─────── -->
+    <div id="pg-reports" class="page">
+      <div class="page-header" style="display: flex; justify-content: space-between; align-items: flex-end;">
+        <div>
+          <h1 class="page-title">Reports & Compliance</h1>
+          <p class="page-desc">Export audit trails and verify regulatory adherence for high-risk AI deployments.</p>
+        </div>
+        <button style="background: linear-gradient(135deg, #00d4ff, #7c3aed); color: white; border: none; border-radius: 8px; padding: 10px 20px; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+          <span>📄</span> Generate Audit Report (PDF)
+        </button>
+      </div>
+
+      <div class="grid grid-2">
+        <!-- EU AI Act Compliance -->
+        <div class="card p-6">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid #334155; padding-bottom: 8px;">
+            <h3 style="display: flex; align-items: center; gap: 8px;">🇪🇺 EU AI Act (Article 14)</h3>
+            <span style="background: rgba(16, 185, 129, 0.2); color: #10b981; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">94% Compliant</span>
+          </div>
+          
+          <p style="font-size: 13px; color: #94a3b8; margin-bottom: 20px;">Mandatory human oversight requirements for High-Risk AI systems (Enforceable Aug 2, 2026).</p>
+
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            <div style="display: flex; gap: 12px; align-items: flex-start;">
+              <div style="color: #10b981; font-size: 16px; margin-top: 2px;">✓</div>
+              <div>
+                <div style="color: #f8fafc; font-size: 14px; font-weight: 500;">Awareness of Automation Bias</div>
+                <div style="color: #64748b; font-size: 12px; margin-top: 2px;">Humans must remain aware of and combat the tendency to over-rely on AI outputs. (Satisfied via Micro-Simulations).</div>
+              </div>
+            </div>
+            
+            <div style="display: flex; gap: 12px; align-items: flex-start;">
+              <div style="color: #10b981; font-size: 16px; margin-top: 2px;">✓</div>
+              <div>
+                <div style="color: #f8fafc; font-size: 14px; font-weight: 500;">Intervention Capability</div>
+                <div style="color: #64748b; font-size: 12px; margin-top: 2px;">Human overseers must be able to override or reverse AI decisions. (Satisfied via Guardrail Logging).</div>
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 12px; align-items: flex-start;">
+              <div style="color: #f59e0b; font-size: 16px; margin-top: 2px;">⚠</div>
+              <div>
+                <div style="color: #f8fafc; font-size: 14px; font-weight: 500;">Training Documentation</div>
+                <div style="color: #64748b; font-size: 12px; margin-top: 2px;">Action Required: 12 analysts have not completed their Q3 cognitive bias calibration training.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- NIST Framework & DPDP -->
+        <div class="card p-6">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid #334155; padding-bottom: 8px;">
+            <h3 style="display: flex; align-items: center; gap: 8px;">🇮🇳 RBI & DPDP Act (India)</h3>
+            <span style="background: rgba(16, 185, 129, 0.2); color: #10b981; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">100% Compliant</span>
+          </div>
+          
+          <p style="font-size: 13px; color: #94a3b8; margin-bottom: 20px;">Adherence to RBI's FREE-AI framework and DPDP algorithmic accountability.</p>
+
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            <div style="display: flex; gap: 12px; align-items: flex-start;">
+              <div style="color: #10b981; font-size: 16px; margin-top: 2px;">✓</div>
+              <div>
+                <div style="color: #f8fafc; font-size: 14px; font-weight: 500;">Human-in-the-Loop for Lending</div>
+                <div style="color: #64748b; font-size: 12px; margin-top: 2px;">RBI requirement that final credit decisions rest with humans is actively monitored via Speed Gates.</div>
+              </div>
+            </div>
+            
+            <div style="display: flex; gap: 12px; align-items: flex-start;">
+              <div style="color: #10b981; font-size: 16px; margin-top: 2px;">✓</div>
+              <div>
+                <div style="color: #f8fafc; font-size: 14px; font-weight: 500;">Algorithmic Accountability (DPDP)</div>
+                <div style="color: #64748b; font-size: 12px; margin-top: 2px;">Immutable audit trails of every human override are captured and ready for regulatory review.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Export Table -->
+      <div class="card p-6" style="margin-top: 24px;">
+        <h3 style="margin-bottom: 16px; border-bottom: 1px solid #334155; padding-bottom: 8px;">Recent Compliance Audits</h3>
+        <table style="width: 100%; text-align: left; border-collapse: collapse; font-size: 13px;">
+          <thead>
+            <tr style="border-bottom: 1px solid #334155; color: #94a3b8;">
+              <th style="padding: 12px 8px; font-weight: 500;">Date</th>
+              <th style="padding: 12px 8px; font-weight: 500;">Report Type</th>
+              <th style="padding: 12px 8px; font-weight: 500;">Generated By</th>
+              <th style="padding: 12px 8px; font-weight: 500; text-align: right;">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom: 1px solid #1e293b;">
+              <td style="padding: 12px 8px; color: #f8fafc;">Aug 28, 2026</td>
+              <td style="padding: 12px 8px; color: #cbd5e1;">Q3 EU AI Act Article 14 Assessment</td>
+              <td style="padding: 12px 8px; color: #64748b;">System Auto-Gen</td>
+              <td style="padding: 12px 8px; text-align: right;"><a href="#" style="color: #00d4ff; text-decoration: none;">Download PDF</a></td>
+            </tr>
+            <tr style="border-bottom: 1px solid #1e293b;">
+              <td style="padding: 12px 8px; color: #f8fafc;">Aug 15, 2026</td>
+              <td style="padding: 12px 8px; color: #cbd5e1;">RBI FREE-AI Oversight Log (Lending)</td>
+              <td style="padding: 12px 8px; color: #64748b;">A. Sharma (Compliance)</td>
+              <td style="padding: 12px 8px; text-align: right;"><a href="#" style="color: #00d4ff; text-decoration: none;">Download PDF</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div><!-- /main-area -->
+</div><!-- /app -->
+
+<!-- ══════════════════════════════════════════════════════════
+     JAVASCRIPT
+     ══════════════════════════════════════════════════════════ -->
+<script>
+/* ─────── LOGIN ─────── */
+function doLogin(){
+  const e=document.getElementById('login-email').value;
+  const p=document.getElementById('login-pass').value;
+  if(e==='demo@indriya.ai'&&p==='rise2026'){
+    document.getElementById('login-screen').classList.add('hidden');
+    document.getElementById('app').classList.add('visible');
+    setTimeout(()=>{document.getElementById('login-screen').style.display='none';bootDashboard()},700);
+  } else {
+    document.getElementById('login-error').style.display='block';
+    setTimeout(()=>document.getElementById('login-error').style.display='none',2000);
+  }
+}
+document.querySelectorAll('.login-field input').forEach(i=>i.addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()}));
+
+/* ─────── NAVIGATION ─────── */
+function nav(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('pg-'+id).classList.add('active');
+  document.querySelectorAll('.sb-item').forEach(n=>n.classList.remove('active'));
+  const map={home:0,passive:1,simulations:2,guardrails:3,analyst:4,reports:5};
+  document.querySelectorAll('.sb-item')[map[id]].classList.add('active');
+  if(id==='passive')initPassive();
+  if(id==='analyst')initAnalyst();
+  if(id==='guardrails')initGuardrails();
+}
+
+/* ─────── BOOT DASHBOARD ─────── */
+function bootDashboard(){
+  animateGauge(64);
+  initLiveFeed();
+  initFatigueTrend();
+  initLiveMetrics();
+}
+
+function initLiveMetrics() {
+  setInterval(() => {
+    // Fluctuate the Gauge slightly to simulate live scoring
+    const gaugeValEl = document.getElementById('gauge-val');
+    if (gaugeValEl) {
+      let currentScore = parseInt(gaugeValEl.textContent) || 64;
+      if (Math.random() > 0.6) { // 40% chance to shift score slightly
+        let shift = Math.random() > 0.5 ? 1 : -1;
+        let newScore = Math.max(60, Math.min(85, currentScore + shift)); // keep it in a realistic range
+        
+        // Quick update without triggering the full start-from-0 animation
+        const circ = 2 * Math.PI * 85;
+        const offset = circ - (newScore / 100) * circ;
+        const arc = document.getElementById('gauge-arc');
+        arc.style.strokeDashoffset = offset;
+        gaugeValEl.textContent = newScore;
+      }
+    }
+  }, 3500);
+}
+
+/* ─────── GAUGE ANIMATION ─────── */
+function animateGauge(val){
+  const circ=2*Math.PI*85;
+  const offset=circ-(val/100)*circ;
+  const arc=document.getElementById('gauge-arc');
+  arc.setAttribute('stroke-dasharray',circ);
+  setTimeout(()=>{arc.style.strokeDashoffset=offset},100);
+  let cur=0;
+  const el=document.getElementById('gauge-val');
+  const step=()=>{if(cur<val){cur++;el.textContent=cur;requestAnimationFrame(step)}};
+  step();
+}
+
+/* ─────── LIVE FEED ─────── */
+const ANALYSTS=['A. Sharma','R. Patel','K. Rao','S. Gupta','M. Singh','P. Verma','D. Kumar','N. Reddy','V. Iyer','T. Das'];
+const WORKFLOWS=['Salesforce','SIEM','Trading'];
+const FEED_EVENTS=[
+  {icon:'✅',tpl:'<span class="name">{name}</span> approved AI lead score recommendation — <span class="action">{wf}</span>',type:'normal'},
+  {icon:'❌',tpl:'<span class="name">{name}</span> rejected fraud detection alert — <span class="action">override logged</span>',type:'normal'},
+  {icon:'⚡',tpl:'<span class="name">{name}</span> approved AI recommendation in <span class="warn">0.{s}s</span> — <span class="warn">Speed Warning</span>',type:'warn'},
+  {icon:'🎯',tpl:'<span class="name">{name}</span> was served a micro-simulation trap — <span class="action">awaiting response</span>',type:'normal'},
+  {icon:'🛡️',tpl:'<span class="danger">Speed Gate triggered</span> for <span class="name">{name}</span> — approved {n} decisions in {t}s',type:'danger'},
+  {icon:'📊',tpl:'<span class="name">{name}</span> completed trust calibration task — score: <span class="warn">{score}/100</span>',type:'normal'},
+  {icon:'⏸️',tpl:'<span class="danger">Fatigue Break triggered</span> for <span class="name">{name}</span> — alert fatigue index hit {fi}',type:'danger'},
+  {icon:'✅',tpl:'<span class="name">{name}</span> correctly identified micro-simulation trap — <span style="color:var(--success)">Passed</span>',type:'normal'},
+  {icon:'❌',tpl:'<span class="name">{name}</span> missed cognitive phishing trap — <span class="danger">Failed (Automation Bias)</span>',type:'danger'},
+];
+
+function genFeedItem(){
+  const ev=FEED_EVENTS[Math.floor(Math.random()*FEED_EVENTS.length)];
+  const name=ANALYSTS[Math.floor(Math.random()*ANALYSTS.length)];
+  const wf=WORKFLOWS[Math.floor(Math.random()*WORKFLOWS.length)];
+  const now=new Date();
+  const time=now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0')+':'+now.getSeconds().toString().padStart(2,'0');
+  let text=ev.tpl.replace('{name}',name).replace('{wf}',wf)
+    .replace('{s}',Math.floor(Math.random()*9)+1)
+    .replace('{n}',Math.floor(Math.random()*5)+4)
+    .replace('{t}',Math.floor(Math.random()*10)+8)
+    .replace('{score}',Math.floor(Math.random()*40)+40)
+    .replace('{fi}',Math.floor(Math.random()*10)+82);
+  return{icon:ev.icon,time,text};
+}
+
+function initLiveFeed(){
+  const feed=document.getElementById('live-feed');
+  for(let i=0;i<8;i++){
+    const item=genFeedItem();
+    feed.innerHTML=`<div class="feed-item"><span class="feed-time">${item.time}</span><span class="feed-icon">${item.icon}</span><span class="feed-text">${item.text}</span></div>`+feed.innerHTML;
+  }
+  setInterval(()=>{
+    const item=genFeedItem();
+    const el=document.createElement('div');
+    el.className='feed-item';
+    el.innerHTML=`<span class="feed-time">${item.time}</span><span class="feed-icon">${item.icon}</span><span class="feed-text">${item.text}</span>`;
+    feed.prepend(el);
+    if(feed.children.length>30)feed.removeChild(feed.lastChild);
+  },3000+Math.random()*2000);
+}
+
+/* ─────── FATIGUE TREND CHART ─────── */
+function initFatigueTrend(){
+  const labels=Array.from({length:30},(_,i)=>'Aug '+(i+1));
+  const data1=[68,65,70,72,68,75,78,74,71,69,72,76,73,70,68,71,74,77,73,69,66,70,73,76,72,68,65,69,72,64];
+  const data2=[45,48,42,50,47,52,55,51,48,46,49,53,50,47,45,48,51,54,50,46,43,47,50,53,49,45,42,46,49,43];
+  new Chart(document.getElementById('fatigueTrendChart'),{
+    type:'line',
+    data:{labels,datasets:[
+      {label:'Alert Fatigue Index',data:data1,borderColor:'#ef4444',backgroundColor:'rgba(239,68,68,0.08)',tension:0.4,fill:true,pointRadius:0,borderWidth:2},
+      {label:'Override Rate %',data:data2,borderColor:'#f59e0b',backgroundColor:'rgba(245,158,11,0.08)',tension:0.4,fill:true,pointRadius:0,borderWidth:2}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{labels:{color:'#64748b',font:{size:11}}}},
+      scales:{x:{ticks:{color:'#475569',font:{size:10},maxTicksLimit:10},grid:{color:'rgba(30,41,59,0.5)'}},
+              y:{ticks:{color:'#475569',font:{size:10}},grid:{color:'rgba(30,41,59,0.5)'},min:0,max:100}}
+    }
+  });
+}
+
+/* ─────── PASSIVE MONITOR ─────── */
+let passiveInit=false;
+const STREAM_ACTIONS=[
+  {analyst:'A. Sharma',event:'Approved lead score',speed:2.1,action:'Approve',wf:'Salesforce'},
+  {analyst:'R. Patel',event:'Rejected fraud alert',speed:4.8,action:'Reject',wf:'SIEM'},
+  {analyst:'K. Rao',event:'Approved trade signal',speed:0.4,action:'Approve',wf:'Trading'},
+  {analyst:'S. Gupta',event:'Approved lead score',speed:1.8,action:'Approve',wf:'Salesforce'},
+  {analyst:'M. Singh',event:'Overrode risk flag',speed:3.2,action:'Override',wf:'SIEM'},
+  {analyst:'P. Verma',event:'Approved AI recommendation',speed:0.7,action:'Approve',wf:'Trading'},
+  {analyst:'D. Kumar',event:'Approved 3 alerts in batch',speed:0.3,action:'Approve',wf:'SIEM'},
+  {analyst:'N. Reddy',event:'Rejected false positive',speed:5.1,action:'Reject',wf:'Salesforce'},
+  {analyst:'V. Iyer',event:'Approved anomaly flag',speed:1.2,action:'Approve',wf:'Trading'},
+  {analyst:'T. Das',event:'Overrode critical alert',speed:6.3,action:'Override',wf:'SIEM'},
+  {analyst:'K. Rao',event:'Approved 5 decisions rapidly',speed:0.2,action:'Approve',wf:'SIEM'},
+  {analyst:'A. Sharma',event:'Rejected AI suggestion',speed:3.7,action:'Reject',wf:'Salesforce'},
+  {analyst:'D. Kumar',event:'Approved high-risk trade',speed:0.5,action:'Approve',wf:'Trading'},
+  {analyst:'M. Singh',event:'Approved lead qualification',speed:2.9,action:'Approve',wf:'Salesforce'},
+];
+
+function initPassive(){
+  if(passiveInit)return;passiveInit=true;
+  const stream=document.getElementById('activity-stream');
+  const now=new Date();
+  let streamCount = STREAM_ACTIONS.length;
+  STREAM_ACTIONS.forEach((a,i)=>{
+    const t=new Date(now-i*45000);
+    const time=t.getHours().toString().padStart(2,'0')+':'+t.getMinutes().toString().padStart(2,'0');
+    const speedCls=a.speed<1?'speed-fast':a.speed<3?'speed-normal':'speed-slow';
+    const speedLabel=a.speed<1?'⚠️ '+a.speed+'s':a.speed+'s';
+    const actionCls='action-'+a.action.toLowerCase();
+    stream.innerHTML+=`<div class="stream-item">
+      <span style="color:var(--dim);font-family:monospace">${time}</span>
+      <span><strong style="color:var(--accent)">${a.analyst}</strong> — ${a.event}</span>
+      <span><span class="speed-badge ${speedCls}">${speedLabel}</span></span>
+      <span><span class="action-badge ${actionCls}">${a.action}</span></span>
+      <span style="color:var(--dim)">${a.wf}</span>
+    </div>`;
+  });
+
+  // Live Data Simulator
+  setInterval(() => {
+    const a = STREAM_ACTIONS[Math.floor(Math.random() * STREAM_ACTIONS.length)];
+    const simulatedSpeed = (Math.random() * 4).toFixed(1); // random speed between 0.0 and 4.0
+    const t = new Date();
+    const time = t.getHours().toString().padStart(2,'0')+':'+t.getMinutes().toString().padStart(2,'0')+':'+t.getSeconds().toString().padStart(2,'0');
+    const speedCls = simulatedSpeed < 1 ? 'speed-fast' : simulatedSpeed < 3 ? 'speed-normal' : 'speed-slow';
+    const speedLabel = simulatedSpeed < 1 ? '⚠️ '+simulatedSpeed+'s' : simulatedSpeed+'s';
+    const actionCls = 'action-' + a.action.toLowerCase();
+    const flash = simulatedSpeed < 1 ? ' flash' : ''; // Only flash red for dangerous speeds
+    
+    const newItem = document.createElement('div');
+    newItem.className = 'stream-item' + flash;
+    newItem.innerHTML = `
+      <span style="color:var(--dim);font-family:monospace">${time}</span>
+      <span><strong style="color:var(--accent)">${a.analyst}</strong> — ${a.event}</span>
+      <span><span class="speed-badge ${speedCls}">${speedLabel}</span></span>
+      <span><span class="action-badge ${actionCls}">${a.action}</span></span>
+      <span style="color:var(--dim)">${a.wf}</span>
+    `;
+    stream.prepend(newItem);
+    
+    if(stream.children.length > 25) stream.removeChild(stream.lastChild);
+    
+    // Randomly update the total actions counter slightly
+    const actionsCounter = document.querySelector('#pg-passive .val.cyan');
+    if (actionsCounter) {
+       let current = parseInt(actionsCounter.innerText.replace(',',''));
+       current++;
+       actionsCounter.innerText = current.toLocaleString();
+    }
+  }, 2500 + Math.random() * 2000);
+
+  // Velocity Heatmap
+  const hm=document.getElementById('velocity-heatmap');
+  const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const hours=['9am','10am','11am','12pm','1pm','2pm','3pm','4pm','5pm'];
+  hm.innerHTML='<div></div>'+days.map(d=>`<div class="heatmap-header">${d}</div>`).join('');
+  const hmData=[
+    [2.8,2.5,2.3,2.1,1.4,3.0,3.2],
+    [2.5,2.2,2.0,1.8,1.2,2.8,3.0],
+    [2.2,2.0,1.8,1.5,1.0,2.5,2.8],
+    [2.0,1.8,1.5,1.3,0.9,2.2,2.5],
+    [2.3,2.1,1.9,1.6,1.1,2.4,2.7],
+    [1.8,1.5,1.2,1.0,0.7,2.0,2.3],
+    [1.5,1.2,1.0,0.8,0.5,1.8,2.0],
+    [1.2,1.0,0.8,0.6,0.4,1.5,1.8],
+    [0.9,0.8,0.7,0.5,0.3,1.2,1.5],
+  ];
+  hours.forEach((h,hi)=>{
+    hm.innerHTML+=`<div class="heatmap-label">${h}</div>`;
+    days.forEach((_,di)=>{
+      const v=hmData[hi][di];
+      const r=v<1?230:v<1.5?200:v<2?150:v<2.5?80:40;
+      const g=v<1?60:v<1.5?80:v<2?120:v<2.5?160:200;
+      const b=v<1?60:v<1.5?60:v<2?60:v<2.5?60:60;
+      hm.innerHTML+=`<div class="heatmap-cell" style="background:rgba(${r},${g},${b},0.7)" title="${v}s avg">${v}</div>`;
+    });
+  });
+
+  // Override Rate Chart
+  new Chart(document.getElementById('overrideChart'),{
+    type:'bar',
+    data:{labels:['Salesforce\nLead Score','SIEM\nAlerts','Trading\nSignals'],
+      datasets:[
+        {label:'Approved',data:[72,58,81],backgroundColor:'rgba(34,197,94,0.7)'},
+        {label:'Rejected',data:[18,28,12],backgroundColor:'rgba(239,68,68,0.7)'},
+        {label:'Overridden',data:[10,14,7],backgroundColor:'rgba(245,158,11,0.7)'}
+      ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{labels:{color:'#64748b',font:{size:11}}}},
+      scales:{x:{stacked:true,ticks:{color:'#475569'},grid:{display:false}},
+              y:{stacked:true,ticks:{color:'#475569'},grid:{color:'rgba(30,41,59,0.5)'},max:100,
+                 title:{display:true,text:'Percentage %',color:'#475569'}}}
+    }
+  });
+
+  // Pattern Drift
+  const weeks=['W1','W2','W3','W4','W5','W6','W7','W8'];
+  new Chart(document.getElementById('driftChart'),{
+    type:'line',
+    data:{labels:weeks,datasets:[
+      {label:'Response Speed (s)',data:[2.8,2.5,2.3,2.0,1.7,1.4,1.1,0.9],borderColor:'#ef4444',tension:0.4,pointRadius:4,pointBackgroundColor:'#ef4444',borderWidth:2},
+      {label:'Override Rate (%)',data:[18,20,22,25,24,26,28,23],borderColor:'#f59e0b',tension:0.4,pointRadius:4,pointBackgroundColor:'#f59e0b',borderWidth:2},
+      {label:'Accuracy (%)',data:[88,85,82,78,80,76,74,79],borderColor:'#22c55e',tension:0.4,pointRadius:4,pointBackgroundColor:'#22c55e',borderWidth:2}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{labels:{color:'#64748b',font:{size:11}}}},
+      scales:{x:{ticks:{color:'#475569'},grid:{color:'rgba(30,41,59,0.5)'}},
+              y:{ticks:{color:'#475569'},grid:{color:'rgba(30,41,59,0.5)'}}}
+    }
+  });
+}
+
+// Deploy Trap Function for Micro-Simulations page
+function deployTrap() {
+  const btn = document.getElementById('btn-deploy');
+  const status = document.getElementById('deploy-status');
+  const feed = document.getElementById('trap-results-feed');
+  
+  btn.innerHTML = '⚙️ Injecting...';
+  btn.style.opacity = '0.7';
+  
+  setTimeout(() => {
+    btn.innerHTML = '🚀 Deploy Trap to Live Environment';
+    btn.style.opacity = '1';
+    status.style.display = 'block';
+    
+    // Add a pending item to the feed
+    const newItem = document.createElement('div');
+    newItem.className = 'feed-item';
+    newItem.innerHTML = `
+      <div class="feed-icon" style="background: rgba(245, 158, 11, 0.2); color: #f59e0b;">⏳</div>
+      <div class="feed-content">
+        <div class="feed-title" style="color: #f59e0b;">Trap Deployed to Active Workflows</div>
+        <div class="feed-time">Waiting for analyst interaction...</div>
+      </div>
+    `;
+    feed.prepend(newItem);
+    
+    setTimeout(() => { status.style.display = 'none'; }, 3000);
+  }, 800);
+}
+
+/* ─────── ANALYST RADAR CHART ─────── */
+let radarInit = false;
+function initAnalyst() {
+  if (radarInit) return; radarInit = true;
+  new Chart(document.getElementById('analystRadar'), {
+    type: 'radar',
+    data: {
+      labels: ['Fact-Checking', 'Source Verification', 'Speed Restraint', 'Anomaly Detection', 'Confidence Scoring'],
+      datasets: [{
+        label: 'Amit Sharma',
+        data: [40, 35, 20, 50, 60],
+        backgroundColor: 'rgba(239, 68, 68, 0.2)',
+        borderColor: '#ef4444',
+        pointBackgroundColor: '#ef4444',
+        borderWidth: 2
+      },
+      {
+        label: 'Team Average',
+        data: [65, 70, 75, 60, 65],
+        backgroundColor: 'rgba(0, 212, 255, 0.1)',
+        borderColor: '#00d4ff',
+        pointBackgroundColor: '#00d4ff',
+        borderWidth: 1,
+        borderDash: [5, 5]
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        r: {
+          angleLines: { color: 'rgba(148, 163, 184, 0.2)' },
+          grid: { color: 'rgba(148, 163, 184, 0.2)' },
+          pointLabels: { color: '#94a3b8', font: { size: 11 } },
+          ticks: { display: false, min: 0, max: 100 }
+        }
+      },
+      plugins: { legend: { labels: { color: '#f8fafc' } } }
+    }
+  });
+}
+
+/* ─────── GUARDRAILS DONUT CHARTS ─────── */
+let guardrailsInit = false;
+function initGuardrails() {
+  if (guardrailsInit) return; guardrailsInit = true;
+  
+  new Chart(document.getElementById('guardrailsDonut1'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Speed Gate (Fast Approvals)', 'Fatigue Breaker', 'Contextual 2FA (High Value)'],
+      datasets: [{
+        data: [65, 25, 10],
+        backgroundColor: ['#ef4444', '#f59e0b', '#3b82f6'],
+        borderWidth: 0,
+        hoverOffset: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: '75%',
+      plugins: {
+        legend: { position: 'right', labels: { color: '#f8fafc', padding: 20, font: { size: 12 } } },
+        tooltip: { callbacks: { label: function(context) { return ' ' + context.label + ': ' + context.raw + '%'; } } }
+      }
+    },
+    plugins: [{
+      id: 'centerText1',
+      beforeDraw: function(chart) {
+        var width = chart.width, height = chart.height, ctx = chart.ctx;
+        ctx.restore();
+        var fontSize = (height / 114).toFixed(2);
+        ctx.font = "bold " + fontSize + "em sans-serif";
+        ctx.textBaseline = "middle";
+        ctx.fillStyle = "#f8fafc";
+        var text = "142", textX = Math.round((width - ctx.measureText(text).width) / 2) - 80, textY = height / 2 - 5;
+        ctx.fillText(text, textX, textY);
+        ctx.font = "normal " + (fontSize * 0.3) + "em sans-serif";
+        ctx.fillStyle = "#94a3b8";
+        var subText = "Total Alerts", subTextX = Math.round((width - ctx.measureText(subText).width) / 2) - 80, subTextY = height / 2 + 15;
+        ctx.fillText(subText, subTextX, subTextY);
+        ctx.save();
+      }
+    }]
+  });
+
+  new Chart(document.getElementById('guardrailsDonut2'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Analyst Rejected AI', 'Analyst Approved AI', 'Escalated to Manager'],
+      datasets: [{
+        data: [42, 53, 5],
+        backgroundColor: ['#10b981', '#ef4444', '#8b5cf6'],
+        borderWidth: 0,
+        hoverOffset: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: '75%',
+      plugins: {
+        legend: { position: 'right', labels: { color: '#f8fafc', padding: 20, font: { size: 12 } } },
+        tooltip: { callbacks: { label: function(context) { return ' ' + context.label + ': ' + context.raw + '%'; } } }
+      }
+    }
+  });
+}
+</script>
+</body>
+</html>

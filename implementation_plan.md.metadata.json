@@ -1,0 +1,6 @@
+{
+  "summary": "Updated implementation plan reframing Indriya as an Endpoint Behavioral Agent installed on every workstation. Adds a critical new 'Employee Workstation Simulator' page that shows Indriya running invisibly inside a fake Salesforce/SIEM UI, with live guardrail triggers. This is the centerpiece demo for investors.",
+  "updatedAt": "2026-08-28T17:54:17.957085100Z",
+  "requestFeedback": true,
+  "userFacing": true
+}

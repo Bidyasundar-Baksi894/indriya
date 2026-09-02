@@ -1,0 +1,5 @@
+{
+  "summary": "The Employee Workstation Simulator. This is a standalone HTML file that acts as the 'victim' application (a generic CRM). It silently runs the Indriya agent logic in the background, tracks click speed, and triggers a jaw-dropping cognitive friction popup if the user approves AI decisions too fast.",
+  "updatedAt": "2026-08-28T18:23:02.861391Z",
+  "userFacing": true
+}
